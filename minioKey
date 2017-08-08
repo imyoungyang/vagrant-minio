@@ -1,0 +1,50 @@
+[docker@minio0 ~]$ echo "AKIAIOSFODNN7EXAMPLE" | docker secret create access_key -
+74h3ohspk1x8qmr3pnf2iy3hi
+[docker@minio0 ~]$ echo "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" | docker secret create secret_key -
+rl2v5uoipas3qt61ysdzzpvnk
+
+
+docker volume create -d minio/minfs \
+  --name my-test-store \
+  -o endpoint=http://192.168.200.10:9001 \
+  -o access-key=AKIAIOSFODNN7EXAMPLE \
+  -o secret-key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \
+  -o bucket=testbucket \
+  -o opts=cache=/tmp/my-test-store
+
+docker volume create -d minio/minfs \
+  --name es-data \
+  -o endpoint=http://192.168.200.10:9001 \
+  -o access-key=AKIAIOSFODNN7EXAMPLE \
+  -o secret-key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \
+  -o bucket=esdata \
+  -o opts="uid=1000,gid=1000,cache=/tmp/es-data"
+
+
+docker run minio/mc config host add minio http://192.168.200.10:9001 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY S3v4
+
+mount -t minfs -ouid=1000,gid=1000 http://192.168.200.10:9001/esdata /mnt/ramdisk/
+
+wget https://github.com/minio/minfs/releases/download/RELEASE.2017-02-26T20-20-56Z/minfs-0.0.20170226202056-1.x86_64.rpm
+echo 'y' | yum install minfs-0.0.20170226202056-1.x86_64.rpm
+mkdir /etc/minfs /mnt/esbucket
+echo '{"version":"1","accessKey":"AKIAIOSFODNN7EXAMPLE","secretKey":"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}' > /etc/minfs/config.json
+echo 'http://192.168.200.10:9001/esbucket /mnt/esbucket minfs defaults,cache=/tmp/esbucket,user_id=1000,group_id=1000 0 0' >> /etc/fstab
+mount -ouid=1000,gid=1000 /mnt/esbucket/
+#mount -t minfs -ouid=1000,gid=1000 http://192.168.200.10:9001/esbucket /mnt/esbucket/
+mkdir /mnt/esbucket/esdata
+chown -R elasticsearch:elasticsearch /mnt/esbucket/esdata
+
+
+{"version":"1","accessKey":"AKIAIOSFODNN7EXAMPLE","secretKey":"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}
+
+http://192.168.200.10:9001/esdata /mnt/ramdisk/ minfs defaults,cache=/tmp/testbucket 0 0
+
+
+docker volume create -d minio/minfs \
+  --name my-test-store3 \
+  -o endpoint=http://192.168.200.10:9001 \
+  -o access-key=AKIAIOSFODNN7EXAMPLE \
+  -o secret-key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \
+  -o bucket=testbucket3 \
+  -o opts="cache=/tmp/my-test-store3,uid=1000,gid=1000"

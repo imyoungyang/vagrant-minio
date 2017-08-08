@@ -1,0 +1,8 @@
+docker volume create -d minio/minfs \
+  --name my-test-store \
+  -o endpoint=http://192.168.200.10:9001 \
+  -o access-key=AKIAIOSFODNN7EXAMPLE \
+  -o secret-key=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY \
+  -o bucket=testbucket \
+  -o opts=cache=/tmp/my-test-store \
+  -o opts="uid=1000,gid=1000"
